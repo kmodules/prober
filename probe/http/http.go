@@ -24,10 +24,9 @@ import (
 	"net/url"
 	"time"
 
-	utilnet "k8s.io/apimachinery/pkg/util/net"
-	"k8s.io/component-base/version"
-	"k8s.io/kubernetes/pkg/probe"
+	"kmodules.xyz/prober/probe"
 
+	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/klog"
 	utilio "k8s.io/utils/io"
 )
@@ -98,8 +97,7 @@ func DoHTTPProbe(url *url.URL, headers http.Header, client GetHTTPInterface) (pr
 			headers = http.Header{}
 		}
 		// explicitly set User-Agent so it's not set to default Go value
-		v := version.Get()
-		headers.Set("User-Agent", fmt.Sprintf("kube-probe/%s.%s", v.Major, v.Minor))
+		headers.Set("User-Agent", "kmodules.xyz/client-go/release-11.0")
 	}
 	req.Header = headers
 	if headers.Get("Host") != "" {

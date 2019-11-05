@@ -19,8 +19,7 @@ package exec
 import (
 	"bytes"
 
-	"k8s.io/kubernetes/pkg/kubelet/util/ioutils"
-	"k8s.io/kubernetes/pkg/probe"
+	"kmodules.xyz/prober/probe"
 
 	"k8s.io/klog"
 	"k8s.io/utils/exec"
@@ -47,7 +46,7 @@ type execProber struct{}
 // errors if any.
 func (pr execProber) Probe(e exec.Cmd) (probe.Result, string, error) {
 	var dataBuffer bytes.Buffer
-	writer := ioutils.LimitWriter(&dataBuffer, maxReadLength)
+	writer := LimitWriter(&dataBuffer, maxReadLength)
 
 	e.SetStderr(writer)
 	e.SetStdout(writer)

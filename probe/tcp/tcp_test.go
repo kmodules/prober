@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"k8s.io/kubernetes/pkg/probe"
+	"kmodules.xyz/prober/probe"
 )
 
 func TestTcpHealthChecker(t *testing.T) {
