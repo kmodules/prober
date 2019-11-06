@@ -125,7 +125,6 @@ clientset:
 .PHONY: openapi
 openapi:
 	@echo "Generating openapi schema"
-	@mkdir -p api/api-rules
 	@docker run --rm	                                 \
 		-u $$(id -u):$$(id -g)                           \
 		-v /tmp:/.cache                                  \
@@ -139,7 +138,7 @@ openapi:
 			--go-header-file "./hack/license/go.txt"     \
 			--input-dirs "$(GO_PKG)/$(REPO)/api/v1"      \
 			--output-package "$(GO_PKG)/$(REPO)/api/v1"  \
-			--report-filename api/api-rules/violation_exceptions.list
+			--report-filename /tmp/violation_exceptions.list
 
 .PHONY: gen
 gen: clientset openapi
