@@ -74,30 +74,35 @@ func (pr httpPostProber) Probe(url *url.URL, headers http.Header, form *url.Valu
 // If the HTTP response code is successful (i.e. 400 > code >= 200), it returns Success.
 // If the HTTP response code is unsuccessful or HTTP communication fails, it returns Failure.
 // This is exported because some other packages may want to do direct HTTP probes.
-func DoHTTPPostProbe(url *url.URL, headers http.Header, client HTTPInterface, form *url.Values, body string) (probe.Result, string, error) {
+func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, form *url.Values, body string) (probe.Result, string, error) {
 	var req *http.Request
 	var err error
+
+	if headers == nil {
+		headers = http.Header{}
+	}
+
 	if form != nil {
-		req, err = http.NewRequest("POST", url.String(), strings.NewReader(form.Encode()))
+		req, err = http.NewRequest("POST", addr.String(), strings.NewReader(form.Encode()))
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
 			return probe.Failure, err.Error(), nil
 		}
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		headers.Set(ContentType, ContentUrlEncodedForm)
 	} else if len(body) > 0 {
-		req, err = http.NewRequest("POST", url.String(), strings.NewReader(body))
+		req, err = http.NewRequest("POST", addr.String(), strings.NewReader(body))
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
 			return probe.Failure, err.Error(), nil
 		}
-		req.Header.Set("Content-Type", "application/json")
+		headers.Set(ContentType, ContentJson)
 	} else {
-		req, err = http.NewRequest("POST", url.String(), nil)
+		req, err = http.NewRequest("POST", addr.String(), nil)
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
 			return probe.Failure, err.Error(), nil
 		}
 	}
 
-	return doHTTPProbe(req, url, headers, client)
+	return doHTTPProbe(req, addr, headers, client)
 }

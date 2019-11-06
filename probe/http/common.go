@@ -12,6 +12,12 @@ import (
 	utilio "k8s.io/utils/io"
 )
 
+const (
+	ContentType           = "Content-Type"
+	ContentUrlEncodedForm = "application/x-www-form-urlencoded"
+	ContentJson           = "application/json"
+)
+
 // HTTPInterface is an interface for making HTTP requests, that returns a response and error.
 type HTTPInterface interface {
 	Do(req *http.Request) (*http.Response, error)

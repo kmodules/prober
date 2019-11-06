@@ -62,7 +62,7 @@ func unsetEnv(key string) func() {
 	return func() {}
 }
 
-func TestHTTPProbeProxy(t *testing.T) {
+func TestHTTPGetProbeProxy(t *testing.T) {
 	res := "welcome to http probe proxy"
 	localProxy := "http://127.0.0.1:9098/"
 
@@ -98,7 +98,7 @@ func TestHTTPProbeProxy(t *testing.T) {
 	}
 }
 
-func TestHTTPProbeChecker(t *testing.T) {
+func TestHTTPProbeGetChecker(t *testing.T) {
 	handleReq := func(s int, body string) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(s)
