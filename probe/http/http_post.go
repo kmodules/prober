@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"kmodules.xyz/prober/probe"
@@ -27,22 +28,18 @@ import (
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 )
 
-const (
-	maxRespBodyLength = 10 * 1 << 10 // 10KB
-)
-
-// New creates GetProber that will skip TLS verification while probing.
+// New creates PostProber that will skip TLS verification while probing.
 // followNonLocalRedirects configures whether the prober should follow redirects to a different hostname.
 //   If disabled, redirects to other hosts will trigger a warning result.
-func NewHttpGet(followNonLocalRedirects bool) GetProber {
+func NewHttpPost(followNonLocalRedirects bool) PostProber {
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
-	return NewGetWithTLSConfig(tlsConfig, followNonLocalRedirects)
+	return NewPostWithTLSConfig(tlsConfig, followNonLocalRedirects)
 }
 
 // NewWithTLSConfig takes tls config as parameter.
 // followNonLocalRedirects configures whether the prober should follow redirects to a different hostname.
 //   If disabled, redirects to other hosts will trigger a warning result.
-func NewGetWithTLSConfig(config *tls.Config, followNonLocalRedirects bool) GetProber {
+func NewPostWithTLSConfig(config *tls.Config, followNonLocalRedirects bool) PostProber {
 	// We do not want the probe use node's local proxy set.
 	transport := utilnet.SetTransportDefaults(
 		&http.Transport{
@@ -50,38 +47,57 @@ func NewGetWithTLSConfig(config *tls.Config, followNonLocalRedirects bool) GetPr
 			DisableKeepAlives: true,
 			Proxy:             http.ProxyURL(nil),
 		})
-	return httpGetProber{transport, followNonLocalRedirects}
+	return httpPostProber{transport, followNonLocalRedirects}
 }
 
-// GetProber is an interface that defines the Probe function for doing HTTP readiness/liveness checks.
-type GetProber interface {
-	Probe(url *url.URL, headers http.Header, timeout time.Duration) (probe.Result, string, error)
+// PostProber is an interface that defines the Probe function for doing HTTP readiness/liveness checks.
+type PostProber interface {
+	Probe(url *url.URL, headers http.Header, form *url.Values, body string, timeout time.Duration) (probe.Result, string, error)
 }
 
-type httpGetProber struct {
+type httpPostProber struct {
 	transport               *http.Transport
 	followNonLocalRedirects bool
 }
 
 // Probe returns a ProbeRunner capable of running an HTTP check.
-func (pr httpGetProber) Probe(url *url.URL, headers http.Header, timeout time.Duration) (probe.Result, string, error) {
+func (pr httpPostProber) Probe(url *url.URL, headers http.Header, form *url.Values, body string, timeout time.Duration) (probe.Result, string, error) {
 	client := &http.Client{
 		Timeout:       timeout,
 		Transport:     pr.transport,
 		CheckRedirect: redirectChecker(pr.followNonLocalRedirects),
 	}
-	return DoHTTPGetProbe(url, headers, client)
+	return DoHTTPPostProbe(url, headers, client, form, body)
 }
 
-// DoHTTPGetProbe checks if a GET request to the url succeeds.
+// DoHTTPPostProbe checks if a POST request to the url succeeds.
 // If the HTTP response code is successful (i.e. 400 > code >= 200), it returns Success.
 // If the HTTP response code is unsuccessful or HTTP communication fails, it returns Failure.
 // This is exported because some other packages may want to do direct HTTP probes.
-func DoHTTPGetProbe(url *url.URL, headers http.Header, client HTTPInterface) (probe.Result, string, error) {
-	req, err := http.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		// Convert errors into failures to catch timeouts.
-		return probe.Failure, err.Error(), nil
+func DoHTTPPostProbe(url *url.URL, headers http.Header, client HTTPInterface, form *url.Values, body string) (probe.Result, string, error) {
+	var req *http.Request
+	var err error
+	if form != nil {
+		req, err = http.NewRequest("POST", url.String(), strings.NewReader(form.Encode()))
+		if err != nil {
+			// Convert errors into failures to catch timeouts.
+			return probe.Failure, err.Error(), nil
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	} else if len(body) > 0 {
+		req, err = http.NewRequest("POST", url.String(), strings.NewReader(body))
+		if err != nil {
+			// Convert errors into failures to catch timeouts.
+			return probe.Failure, err.Error(), nil
+		}
+		req.Header.Set("Content-Type", "application/json")
+	} else {
+		req, err = http.NewRequest("POST", url.String(), nil)
+		if err != nil {
+			// Convert errors into failures to catch timeouts.
+			return probe.Failure, err.Error(), nil
+		}
 	}
+
 	return doHTTPProbe(req, url, headers, client)
 }
