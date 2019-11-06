@@ -21,6 +21,8 @@ limitations under the License.
 package v1
 
 import (
+	url "net/url"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -32,6 +34,25 @@ func (in *HTTPPostAction) DeepCopyInto(out *HTTPPostAction) {
 		in, out := &in.HTTPHeaders, &out.HTTPHeaders
 		*out = make([]corev1.HTTPHeader, len(*in))
 		copy(*out, *in)
+	}
+	if in.Form != nil {
+		in, out := &in.Form, &out.Form
+		*out = new(url.Values)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make(map[string][]string, len(*in))
+			for key, val := range *in {
+				var outVal []string
+				if val == nil {
+					(*out)[key] = nil
+				} else {
+					in, out := &val, &outVal
+					*out = make([]string, len(*in))
+					copy(*out, *in)
+				}
+				(*out)[key] = outVal
+			}
+		}
 	}
 	return
 }

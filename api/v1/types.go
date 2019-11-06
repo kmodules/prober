@@ -16,6 +16,7 @@ limitations under the License.
 package v1
 
 import (
+	"net/url"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -63,4 +64,7 @@ type HTTPPostAction struct {
 	// Body to set in the request.
 	// +optional
 	Body string `json:"body,omitempty"`
+	// Form to set in the request body.
+	// +optional
+	Form *url.Values `json:"form,omitempty"`
 }

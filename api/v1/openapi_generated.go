@@ -88,6 +88,28 @@ func schema_kmodulesxyz_prober_api_v1_HTTPPostAction(ref common.ReferenceCallbac
 							Format:      "",
 						},
 					},
+					"form": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Form to set in the request body.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type: []string{"array"},
+										Items: &spec.SchemaOrArray{
+											Schema: &spec.Schema{
+												SchemaProps: spec.SchemaProps{
+													Type:   []string{"string"},
+													Format: "",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"port"},
 			},
