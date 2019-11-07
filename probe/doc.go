@@ -15,4 +15,4 @@ limitations under the License.
 */
 
 // Package probe contains utilities for health probing, as well as health status information.
-package probe // import "kmodules.xyz/Prober/probe"
+package probe // import "kmodules.xyz/prober/probe"
