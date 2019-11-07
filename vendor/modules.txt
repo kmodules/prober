@@ -13,6 +13,10 @@ github.com/docker/spdystream/spdy
 # github.com/emicklei/go-restful v2.9.6+incompatible
 github.com/emicklei/go-restful
 github.com/emicklei/go-restful/log
+# github.com/gabriel-vasile/mimetype v0.3.22
+github.com/gabriel-vasile/mimetype
+github.com/gabriel-vasile/mimetype/internal/matchers
+github.com/gabriel-vasile/mimetype/internal/json
 # github.com/go-openapi/jsonpointer v0.19.0
 github.com/go-openapi/jsonpointer
 # github.com/go-openapi/jsonreference v0.19.0

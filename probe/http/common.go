@@ -16,6 +16,7 @@ const (
 	ContentType           = "Content-Type"
 	ContentUrlEncodedForm = "application/x-www-form-urlencoded"
 	ContentJson           = "application/json"
+	ContentPlainText      = "text/plain"
 )
 
 // HTTPInterface is an interface for making HTTP requests, that returns a response and error.

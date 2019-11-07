@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/appscode/go v0.0.0-20191025021232-311ac347b3ef
+	github.com/gabriel-vasile/mimetype v0.3.22
 	github.com/go-openapi/jsonpointer v0.19.0 // indirect
 	github.com/go-openapi/jsonreference v0.19.0 // indirect
 	github.com/go-openapi/spec v0.19.0

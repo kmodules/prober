@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gabriel-vasile/mimetype"
 	"kmodules.xyz/prober/probe"
 
 	utilnet "k8s.io/apimachinery/pkg/util/net"
@@ -95,7 +96,8 @@ func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, f
 			// Convert errors into failures to catch timeouts.
 			return probe.Failure, err.Error(), nil
 		}
-		headers.Set(ContentType, ContentJson)
+		mime, _ := mimetype.Detect([]byte(body))
+		headers.Set(ContentType, mime)
 	} else {
 		req, err = http.NewRequest("POST", addr.String(), nil)
 		if err != nil {
