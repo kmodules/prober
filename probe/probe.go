@@ -62,7 +62,7 @@ func NewProber(config *rest.Config) *Prober {
 
 func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, status core.PodStatus, container core.Container, timeout time.Duration) (api.Result, string, error) {
 	if p.Exec != nil {
-		log.Infof("Exec-Probe Pod: %v, Container: %v, Command: %v", pod, container, p.Exec.Command)
+		log.Debug("Exec-Probe Pod: %v, Container: %v, Command: %v", pod, container, p.Exec.Command)
 		return pb.Exec.Probe(pb.Config, pod, container, p.Exec.Command)
 	}
 	if p.HTTPGet != nil {
@@ -76,10 +76,10 @@ func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, status core.PodStat
 			return api.Unknown, "", err
 		}
 		path := p.HTTPGet.Path
-		log.Infof("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
+		log.Debug("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
 		targetURL := formatURL(scheme, host, port, path)
 		headers := buildHeader(p.HTTPGet.HTTPHeaders)
-		log.Infof("HTTP-Probe Headers: %v", headers)
+		log.Debug("HTTP-Probe Headers: %v", headers)
 		return pb.HttpGet.Probe(targetURL, headers, timeout)
 	}
 	if p.HTTPPost != nil {
@@ -93,10 +93,10 @@ func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, status core.PodStat
 			return api.Unknown, "", err
 		}
 		path := p.HTTPPost.Path
-		log.Infof("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
+		log.Debug("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
 		targetURL := formatURL(scheme, host, port, path)
 		headers := buildHeader(p.HTTPPost.HTTPHeaders)
-		log.Infof("HTTP-Probe Headers: %v", headers)
+		log.Debug("HTTP-Probe Headers: %v", headers)
 		return pb.HttpPost.Probe(targetURL, headers, p.HTTPPost.Form, p.HTTPPost.Body, timeout)
 	}
 	if p.TCPSocket != nil {
@@ -108,7 +108,7 @@ func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, status core.PodStat
 		if host == "" {
 			host = status.PodIP
 		}
-		log.Infof("TCP-Probe Host: %v, Port: %v, Timeout: %v", host, port, timeout)
+		log.Debug("TCP-Probe Host: %v, Port: %v, Timeout: %v", host, port, timeout)
 		return pb.Tcp.Probe(host, port, timeout)
 	}
 	log.Warningf("Failed to find probe builder for container: %v", container)
