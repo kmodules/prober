@@ -20,7 +20,7 @@ import (
 	"bytes"
 
 	exec_util "kmodules.xyz/client-go/tools/exec"
-	"kmodules.xyz/prober/probe"
+	api "kmodules.xyz/prober/api"
 
 	"github.com/appscode/go/log"
 	core "k8s.io/api/core/v1"
@@ -38,7 +38,7 @@ func New() Prober {
 
 // Prober is an interface defining the Probe object for container readiness/liveness checks.
 type Prober interface {
-	Probe(config *rest.Config, pod *core.Pod, container core.Container, commands []string) (probe.Result, string, error)
+	Probe(config *rest.Config, pod *core.Pod, container core.Container, commands []string) (api.Result, string, error)
 }
 
 type execProber struct{}
@@ -46,7 +46,7 @@ type execProber struct{}
 // Probe executes a command to check the liveness/readiness of container
 // from executing a command. Returns the Result status, command output, and
 // errors if any.
-func (pr execProber) Probe(config *rest.Config, pod *core.Pod, container core.Container, commands []string) (probe.Result, string, error) {
+func (pr execProber) Probe(config *rest.Config, pod *core.Pod, container core.Container, commands []string) (api.Result, string, error) {
 	log.Infoln("Running command: ", commands)
 	// limit output and error msg size to 10KB
 	var outBuffer, errBuffer bytes.Buffer
@@ -61,7 +61,7 @@ func (pr execProber) Probe(config *rest.Config, pod *core.Pod, container core.Co
 	})
 
 	if err != nil {
-		return probe.Failure, data, nil
+		return api.Failure, data, nil
 	}
-	return probe.Success, data, nil
+	return api.Success, data, nil
 }

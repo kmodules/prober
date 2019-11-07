@@ -22,7 +22,7 @@ import (
 	"net/url"
 	"time"
 
-	"kmodules.xyz/prober/probe"
+	api "kmodules.xyz/prober/api"
 
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 )
@@ -53,9 +53,9 @@ func NewGetWithTLSConfig(config *tls.Config, followNonLocalRedirects bool) GetPr
 	return httpGetProber{transport, followNonLocalRedirects}
 }
 
-// GetProber is an interface that defines the Probe function for doing HTTP readiness/liveness checks.
+// GetProber is an interface that defines the Probe function for doing HTTP probe.
 type GetProber interface {
-	Probe(url *url.URL, headers http.Header, timeout time.Duration) (probe.Result, string, error)
+	Probe(url *url.URL, headers http.Header, timeout time.Duration) (api.Result, string, error)
 }
 
 type httpGetProber struct {
@@ -64,7 +64,7 @@ type httpGetProber struct {
 }
 
 // Probe returns a ProbeRunner capable of running an HTTP check.
-func (pr httpGetProber) Probe(url *url.URL, headers http.Header, timeout time.Duration) (probe.Result, string, error) {
+func (pr httpGetProber) Probe(url *url.URL, headers http.Header, timeout time.Duration) (api.Result, string, error) {
 	client := &http.Client{
 		Timeout:       timeout,
 		Transport:     pr.transport,
@@ -77,11 +77,11 @@ func (pr httpGetProber) Probe(url *url.URL, headers http.Header, timeout time.Du
 // If the HTTP response code is successful (i.e. 400 > code >= 200), it returns Success.
 // If the HTTP response code is unsuccessful or HTTP communication fails, it returns Failure.
 // This is exported because some other packages may want to do direct HTTP probes.
-func DoHTTPGetProbe(url *url.URL, headers http.Header, client HTTPInterface) (probe.Result, string, error) {
+func DoHTTPGetProbe(url *url.URL, headers http.Header, client HTTPInterface) (api.Result, string, error) {
 	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
 		// Convert errors into failures to catch timeouts.
-		return probe.Failure, err.Error(), nil
+		return api.Failure, err.Error(), nil
 	}
 	return doHTTPProbe(req, url, headers, client)
 }

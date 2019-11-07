@@ -23,9 +23,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gabriel-vasile/mimetype"
-	"kmodules.xyz/prober/probe"
+	api "kmodules.xyz/prober/api"
 
+	"github.com/gabriel-vasile/mimetype"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 )
 
@@ -51,9 +51,9 @@ func NewPostWithTLSConfig(config *tls.Config, followNonLocalRedirects bool) Post
 	return httpPostProber{transport, followNonLocalRedirects}
 }
 
-// PostProber is an interface that defines the Probe function for doing HTTP readiness/liveness checks.
+// PostProber is an interface that defines the Probe function for doing HTTP probe.
 type PostProber interface {
-	Probe(url *url.URL, headers http.Header, form *url.Values, body string, timeout time.Duration) (probe.Result, string, error)
+	Probe(url *url.URL, headers http.Header, form *url.Values, body string, timeout time.Duration) (api.Result, string, error)
 }
 
 type httpPostProber struct {
@@ -62,7 +62,7 @@ type httpPostProber struct {
 }
 
 // Probe returns a ProbeRunner capable of running an HTTP check.
-func (pr httpPostProber) Probe(url *url.URL, headers http.Header, form *url.Values, body string, timeout time.Duration) (probe.Result, string, error) {
+func (pr httpPostProber) Probe(url *url.URL, headers http.Header, form *url.Values, body string, timeout time.Duration) (api.Result, string, error) {
 	client := &http.Client{
 		Timeout:       timeout,
 		Transport:     pr.transport,
@@ -75,7 +75,7 @@ func (pr httpPostProber) Probe(url *url.URL, headers http.Header, form *url.Valu
 // If the HTTP response code is successful (i.e. 400 > code >= 200), it returns Success.
 // If the HTTP response code is unsuccessful or HTTP communication fails, it returns Failure.
 // This is exported because some other packages may want to do direct HTTP probes.
-func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, form *url.Values, body string) (probe.Result, string, error) {
+func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, form *url.Values, body string) (api.Result, string, error) {
 	var req *http.Request
 	var err error
 
@@ -87,14 +87,14 @@ func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, f
 		req, err = http.NewRequest("POST", addr.String(), strings.NewReader(form.Encode()))
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
-			return probe.Failure, err.Error(), nil
+			return api.Failure, err.Error(), nil
 		}
 		headers.Set(ContentType, ContentUrlEncodedForm)
 	} else if len(body) > 0 {
 		req, err = http.NewRequest("POST", addr.String(), strings.NewReader(body))
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
-			return probe.Failure, err.Error(), nil
+			return api.Failure, err.Error(), nil
 		}
 		mime, _ := mimetype.Detect([]byte(body))
 		headers.Set(ContentType, mime)
@@ -102,7 +102,7 @@ func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, f
 		req, err = http.NewRequest("POST", addr.String(), nil)
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
-			return probe.Failure, err.Error(), nil
+			return api.Failure, err.Error(), nil
 		}
 	}
 
