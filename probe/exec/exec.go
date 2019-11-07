@@ -20,9 +20,8 @@ import (
 	"bytes"
 
 	exec_util "kmodules.xyz/client-go/tools/exec"
-	api "kmodules.xyz/prober/api"
+	"kmodules.xyz/prober/api"
 
-	"github.com/appscode/go/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 )
@@ -47,7 +46,6 @@ type execProber struct{}
 // from executing a command. Returns the Result status, command output, and
 // errors if any.
 func (pr execProber) Probe(config *rest.Config, pod *core.Pod, container core.Container, commands []string) (api.Result, string, error) {
-	log.Infoln("Running command: ", commands)
 	// limit output and error msg size to 10KB
 	var outBuffer, errBuffer bytes.Buffer
 	stdOut := LimitWriter(&outBuffer, maxReadLength)
