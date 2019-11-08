@@ -61,7 +61,7 @@ github.com/pmezard/go-difflib/difflib
 # github.com/stretchr/testify v1.3.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# golang.org/x/crypto v0.0.0-20190422183909-d864b10871cd
+# golang.org/x/crypto v0.0.0-20190424203555-c05e17bb3b2d
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6
 golang.org/x/net/http2
@@ -70,10 +70,10 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/context
-# golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
+# golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20190412213103-97732733099d
+# golang.org/x/sys v0.0.0-20190425145619-16072639606e
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.1
@@ -239,7 +239,7 @@ k8s.io/kube-openapi/pkg/common
 # k8s.io/utils v0.0.0-20190506122338-8fab8cb257d5 => k8s.io/utils v0.0.0-20190514214443-0a167cbac756
 k8s.io/utils/io
 k8s.io/utils/integer
-# kmodules.xyz/client-go v0.0.0-20191106092240-221d8b290c75
+# kmodules.xyz/client-go v0.0.0-20191107203555-78563b72c377
 kmodules.xyz/client-go/tools/exec
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml
