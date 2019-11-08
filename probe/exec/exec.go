@@ -19,10 +19,11 @@ package exec
 import (
 	"bytes"
 
-	"kmodules.xyz/prober/probe"
+	exec_util "kmodules.xyz/client-go/tools/exec"
+	"kmodules.xyz/prober/api"
 
-	"k8s.io/klog"
-	"k8s.io/utils/exec"
+	core "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -36,7 +37,7 @@ func New() Prober {
 
 // Prober is an interface defining the Probe object for container readiness/liveness checks.
 type Prober interface {
-	Probe(e exec.Cmd) (probe.Result, string, error)
+	Probe(config *rest.Config, pod *core.Pod, containerName string, commands []string) (api.Result, string, error)
 }
 
 type execProber struct{}
@@ -44,28 +45,21 @@ type execProber struct{}
 // Probe executes a command to check the liveness/readiness of container
 // from executing a command. Returns the Result status, command output, and
 // errors if any.
-func (pr execProber) Probe(e exec.Cmd) (probe.Result, string, error) {
-	var dataBuffer bytes.Buffer
-	writer := LimitWriter(&dataBuffer, maxReadLength)
+func (pr execProber) Probe(config *rest.Config, pod *core.Pod, containerName string, commands []string) (api.Result, string, error) {
+	// limit output and error msg size to 10KB
+	var outBuffer, errBuffer bytes.Buffer
+	stdOut := LimitWriter(&outBuffer, maxReadLength)
+	stdErr := LimitWriter(&errBuffer, maxReadLength)
 
-	e.SetStderr(writer)
-	e.SetStdout(writer)
-	err := e.Start()
-	if err == nil {
-		err = e.Wait()
-	}
-	data := dataBuffer.Bytes()
+	data, err := exec_util.ExecIntoPod(config, pod, func(opt *exec_util.Options) {
+		opt.Container = containerName
+		opt.Command = commands
+		opt.StreamOptions.Stdout = stdOut
+		opt.StreamOptions.Stderr = stdErr
+	})
 
-	klog.V(4).Infof("Exec probe response: %q", string(data))
 	if err != nil {
-		exit, ok := err.(exec.ExitError)
-		if ok {
-			if exit.ExitStatus() == 0 {
-				return probe.Success, string(data), nil
-			}
-			return probe.Failure, string(data), nil
-		}
-		return probe.Unknown, "", err
+		return api.Failure, data, nil
 	}
-	return probe.Success, string(data), nil
+	return api.Success, data, nil
 }

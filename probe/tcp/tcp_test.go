@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"kmodules.xyz/prober/probe"
+	api "kmodules.xyz/prober/api"
 )
 
 func TestTcpHealthChecker(t *testing.T) {
@@ -46,13 +46,13 @@ func TestTcpHealthChecker(t *testing.T) {
 		host string
 		port int
 
-		expectedStatus probe.Result
+		expectedStatus api.Result
 		expectedError  error
 	}{
 		// A connection is made and probing would succeed
-		{tHost, tPort, probe.Success, nil},
+		{tHost, tPort, api.Success, nil},
 		// No connection can be made and probing would fail
-		{tHost, -1, probe.Failure, nil},
+		{tHost, -1, api.Failure, nil},
 	}
 
 	prober := New()
