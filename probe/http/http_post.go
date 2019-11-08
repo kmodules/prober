@@ -84,14 +84,14 @@ func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, f
 	}
 
 	if form != nil {
-		req, err = http.NewRequest("POST", addr.String(), strings.NewReader(form.Encode()))
+		req, err = http.NewRequest(http.MethodPost, addr.String(), strings.NewReader(form.Encode()))
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
 			return api.Failure, err.Error(), nil
 		}
 		headers.Set(ContentType, ContentUrlEncodedForm)
 	} else if len(body) > 0 {
-		req, err = http.NewRequest("POST", addr.String(), strings.NewReader(body))
+		req, err = http.NewRequest(http.MethodPost, addr.String(), strings.NewReader(body))
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
 			return api.Failure, err.Error(), nil
@@ -99,7 +99,7 @@ func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, f
 		mime, _ := mimetype.Detect([]byte(body))
 		headers.Set(ContentType, mime)
 	} else {
-		req, err = http.NewRequest("POST", addr.String(), nil)
+		req, err = http.NewRequest(http.MethodPost, addr.String(), nil)
 		if err != nil {
 			// Convert errors into failures to catch timeouts.
 			return api.Failure, err.Error(), nil

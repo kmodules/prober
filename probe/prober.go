@@ -60,59 +60,60 @@ func NewProber(config *rest.Config) *Prober {
 	}
 }
 
-func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, status core.PodStatus, container core.Container, timeout time.Duration) (api.Result, string, error) {
+func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, containerName string, timeout time.Duration) (api.Result, string, error) {
+
 	if p.Exec != nil {
-		log.Debug("Exec-Probe Pod: %v, Container: %v, Command: %v", pod, container, p.Exec.Command)
-		return pb.Exec.Probe(pb.Config, pod, container, p.Exec.Command)
+		log.Debugf("Exec-Probe Pod: %v, Container: %v, Command: %v", formatPod(pod), containerName, p.Exec.Command)
+		return pb.Exec.Probe(pb.Config, pod, containerName, p.Exec.Command)
 	}
 	if p.HTTPGet != nil {
 		scheme := strings.ToLower(string(p.HTTPGet.Scheme))
 		host := p.HTTPGet.Host
 		if host == "" {
-			host = status.PodIP
+			host = pod.Status.PodIP
 		}
-		port, err := extractPort(p.HTTPGet.Port, container)
+		port, err := extractPort(p.HTTPGet.Port, pod, containerName)
 		if err != nil {
 			return api.Unknown, "", err
 		}
 		path := p.HTTPGet.Path
-		log.Debug("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
+		log.Debugf("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
 		targetURL := formatURL(scheme, host, port, path)
 		headers := buildHeader(p.HTTPGet.HTTPHeaders)
-		log.Debug("HTTP-Probe Headers: %v", headers)
+		log.Debugf("HTTP-Probe Headers: %v", headers)
 		return pb.HttpGet.Probe(targetURL, headers, timeout)
 	}
 	if p.HTTPPost != nil {
 		scheme := strings.ToLower(string(p.HTTPPost.Scheme))
 		host := p.HTTPPost.Host
 		if host == "" {
-			host = status.PodIP
+			host = pod.Status.PodIP
 		}
-		port, err := extractPort(p.HTTPPost.Port, container)
+		port, err := extractPort(p.HTTPPost.Port, pod, containerName)
 		if err != nil {
 			return api.Unknown, "", err
 		}
 		path := p.HTTPPost.Path
-		log.Debug("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
+		log.Debugf("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
 		targetURL := formatURL(scheme, host, port, path)
 		headers := buildHeader(p.HTTPPost.HTTPHeaders)
-		log.Debug("HTTP-Probe Headers: %v", headers)
+		log.Debugf("HTTP-Probe Headers: %v", headers)
 		return pb.HttpPost.Probe(targetURL, headers, p.HTTPPost.Form, p.HTTPPost.Body, timeout)
 	}
 	if p.TCPSocket != nil {
-		port, err := extractPort(p.TCPSocket.Port, container)
+		port, err := extractPort(p.TCPSocket.Port, pod, containerName)
 		if err != nil {
 			return api.Unknown, "", err
 		}
 		host := p.TCPSocket.Host
 		if host == "" {
-			host = status.PodIP
+			host = pod.Status.PodIP
 		}
-		log.Debug("TCP-Probe Host: %v, Port: %v, Timeout: %v", host, port, timeout)
+		log.Debugf("TCP-Probe Host: %v, Port: %v, Timeout: %v", host, port, timeout)
 		return pb.Tcp.Probe(host, port, timeout)
 	}
-	log.Warningf("Failed to find probe builder for container: %v", container)
-	return api.Unknown, "", fmt.Errorf("missing probe handler for %s:%s", formatPod(pod), container.Name)
+	log.Warningf("Failed to find probe builder for container: %v", containerName)
+	return api.Unknown, "", fmt.Errorf("missing probe handler for %s:%s", formatPod(pod), containerName)
 }
 
 // buildHeaderMap takes a list of HTTPHeader <name, value> string
@@ -125,9 +126,27 @@ func buildHeader(headerList []v1.HTTPHeader) http.Header {
 	return headers
 }
 
-func extractPort(param intstr.IntOrString, container core.Container) (int, error) {
+func extractPort(param intstr.IntOrString, pod *core.Pod, containerName string) (int, error) {
 	port := -1
 	var err error
+
+	if pod == nil {
+		return port, fmt.Errorf("failed to extract port. invalid pod")
+	}
+
+	var container core.Container
+	found := false
+	for i := range pod.Spec.Containers {
+		if pod.Spec.Containers[i].Name == containerName {
+			container = pod.Spec.Containers[i]
+			found = true
+			break
+		}
+	}
+	if !found {
+		return port, fmt.Errorf("failed to extract port. container not found")
+	}
+
 	switch param.Type {
 	case intstr.Int:
 		port = param.IntValue()

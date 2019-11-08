@@ -78,7 +78,7 @@ func (pr httpGetProber) Probe(url *url.URL, headers http.Header, timeout time.Du
 // If the HTTP response code is unsuccessful or HTTP communication fails, it returns Failure.
 // This is exported because some other packages may want to do direct HTTP probes.
 func DoHTTPGetProbe(url *url.URL, headers http.Header, client HTTPInterface) (api.Result, string, error) {
-	req, err := http.NewRequest("GET", url.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, url.String(), nil)
 	if err != nil {
 		// Convert errors into failures to catch timeouts.
 		return api.Failure, err.Error(), nil

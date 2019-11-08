@@ -37,7 +37,7 @@ func New() Prober {
 
 // Prober is an interface defining the Probe object for container readiness/liveness checks.
 type Prober interface {
-	Probe(config *rest.Config, pod *core.Pod, container core.Container, commands []string) (api.Result, string, error)
+	Probe(config *rest.Config, pod *core.Pod, containerName string, commands []string) (api.Result, string, error)
 }
 
 type execProber struct{}
@@ -45,14 +45,14 @@ type execProber struct{}
 // Probe executes a command to check the liveness/readiness of container
 // from executing a command. Returns the Result status, command output, and
 // errors if any.
-func (pr execProber) Probe(config *rest.Config, pod *core.Pod, container core.Container, commands []string) (api.Result, string, error) {
+func (pr execProber) Probe(config *rest.Config, pod *core.Pod, containerName string, commands []string) (api.Result, string, error) {
 	// limit output and error msg size to 10KB
 	var outBuffer, errBuffer bytes.Buffer
 	stdOut := LimitWriter(&outBuffer, maxReadLength)
 	stdErr := LimitWriter(&errBuffer, maxReadLength)
 
 	data, err := exec_util.ExecIntoPod(config, pod, func(opt *exec_util.Options) {
-		opt.Container = container.Name
+		opt.Container = containerName
 		opt.Command = commands
 		opt.StreamOptions.Stdout = stdOut
 		opt.StreamOptions.Stderr = stdErr
