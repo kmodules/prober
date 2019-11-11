@@ -31,6 +31,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 	return map[string]common.OpenAPIDefinition{
 		"kmodules.xyz/prober/api/v1.HTTPPostAction": schema_kmodulesxyz_prober_api_v1_HTTPPostAction(ref),
 		"kmodules.xyz/prober/api/v1.Handler":        schema_kmodulesxyz_prober_api_v1_Handler(ref),
+		"kmodules.xyz/prober/api/v1.ValueList":      schema_kmodulesxyz_prober_api_v1_ValueList(ref),
 	}
 }
 
@@ -96,15 +97,7 @@ func schema_kmodulesxyz_prober_api_v1_HTTPPostAction(ref common.ReferenceCallbac
 								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type: []string{"array"},
-										Items: &spec.SchemaOrArray{
-											Schema: &spec.Schema{
-												SchemaProps: spec.SchemaProps{
-													Type:   []string{"string"},
-													Format: "",
-												},
-											},
-										},
+										Ref: ref("kmodules.xyz/prober/api/v1.ValueList"),
 									},
 								},
 							},
@@ -115,7 +108,7 @@ func schema_kmodulesxyz_prober_api_v1_HTTPPostAction(ref common.ReferenceCallbac
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.HTTPHeader", "k8s.io/apimachinery/pkg/util/intstr.IntOrString"},
+			"k8s.io/api/core/v1.HTTPHeader", "k8s.io/apimachinery/pkg/util/intstr.IntOrString", "kmodules.xyz/prober/api/v1.ValueList"},
 	}
 }
 
@@ -155,5 +148,30 @@ func schema_kmodulesxyz_prober_api_v1_Handler(ref common.ReferenceCallback) comm
 		},
 		Dependencies: []string{
 			"k8s.io/api/core/v1.ExecAction", "k8s.io/api/core/v1.HTTPGetAction", "k8s.io/api/core/v1.TCPSocketAction", "kmodules.xyz/prober/api/v1.HTTPPostAction"},
+	}
+}
+
+func schema_kmodulesxyz_prober_api_v1_ValueList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"values": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
