@@ -98,7 +98,7 @@ func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, containerName strin
 		targetURL := formatURL(scheme, host, port, path)
 		headers := buildHeader(p.HTTPPost.HTTPHeaders)
 		log.Debugf("HTTP-Probe Headers: %v", headers)
-		return pb.HttpPost.Probe(targetURL, headers, p.HTTPPost.Form, p.HTTPPost.Body, timeout)
+		return pb.HttpPost.Probe(targetURL, headers, toValues(p.HTTPPost.Form), p.HTTPPost.Body, timeout)
 	}
 	if p.TCPSocket != nil {
 		port, err := extractPort(p.TCPSocket.Port, pod, containerName)
@@ -114,6 +114,17 @@ func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, containerName strin
 	}
 	log.Warningf("Failed to find probe builder for container: %v", containerName)
 	return api.Unknown, "", fmt.Errorf("missing probe handler for %s:%s", formatPod(pod), containerName)
+}
+
+func toValues(form map[string]api_v1.ValueList) *url.Values {
+	if form == nil {
+		return nil
+	}
+	var out url.Values
+	for k, v := range form {
+		out[k] = v.Values
+	}
+	return &out
 }
 
 // buildHeaderMap takes a list of HTTPHeader <name, value> string

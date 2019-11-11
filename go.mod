@@ -10,7 +10,7 @@ require (
 	github.com/go-openapi/jsonreference v0.19.0 // indirect
 	github.com/go-openapi/spec v0.19.0
 	github.com/go-openapi/swag v0.17.2 // indirect
-	github.com/gogo/protobuf v1.2.1 // indirect
+	github.com/gogo/protobuf v1.2.1
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/crypto v0.0.0-20190424203555-c05e17bb3b2d // indirect
 	golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6 // indirect
