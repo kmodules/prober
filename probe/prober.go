@@ -34,8 +34,10 @@ import (
 	"github.com/appscode/go/log"
 	core "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
@@ -60,71 +62,112 @@ func NewProber(config *rest.Config) *Prober {
 	}
 }
 
-func (pb *Prober) RunProbe(p *api_v1.Handler, pod *core.Pod, containerName string, timeout time.Duration) (api.Result, string, error) {
+func RunProbe(config *rest.Config, probes *api_v1.Handler, podName, namespace string) error {
+	prober := NewProber(config)
 
-	if p.Exec != nil {
-		log.Debugf("Exec-Probe Pod: %v, Container: %v, Command: %v", formatPod(pod), containerName, p.Exec.Command)
-		return pb.Exec.Probe(pb.Config, pod, containerName, p.Exec.Command)
-	}
-	if p.HTTPGet != nil {
-		scheme := strings.ToLower(string(p.HTTPGet.Scheme))
-		host := p.HTTPGet.Host
-		if host == "" {
-			host = pod.Status.PodIP
-		}
-		port, err := extractPort(p.HTTPGet.Port, pod, containerName)
+	var pod *core.Pod
+	if podName != "" {
+		kubeClient, err := kubernetes.NewForConfig(config)
 		if err != nil {
-			return api.Unknown, "", err
+			return fmt.Errorf("failed to create kuberentes client. Error: %v", err.Error())
 		}
-		path := p.HTTPGet.Path
-		log.Debugf("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
-		targetURL := formatURL(scheme, host, port, path)
-		headers := buildHeader(p.HTTPGet.HTTPHeaders)
-		log.Debugf("HTTP-Probe Headers: %v", headers)
-		return pb.HttpGet.Probe(targetURL, headers, timeout)
-	}
-	if p.HTTPPost != nil {
-		scheme := strings.ToLower(string(p.HTTPPost.Scheme))
-		host := p.HTTPPost.Host
-		if host == "" {
-			host = pod.Status.PodIP
-		}
-		port, err := extractPort(p.HTTPPost.Port, pod, containerName)
+
+		pod, err = kubeClient.CoreV1().Pods(namespace).Get(podName, metav1.GetOptions{})
 		if err != nil {
-			return api.Unknown, "", err
+			return fmt.Errorf("filed to get pod %s/%s. Error: %v", namespace, podName, err.Error())
 		}
-		path := p.HTTPPost.Path
-		log.Debugf("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
-		targetURL := formatURL(scheme, host, port, path)
-		headers := buildHeader(p.HTTPPost.HTTPHeaders)
-		log.Debugf("HTTP-Probe Headers: %v", headers)
-		return pb.HttpPost.Probe(targetURL, headers, toValues(p.HTTPPost.Form), p.HTTPPost.Body, timeout)
 	}
-	if p.TCPSocket != nil {
-		port, err := extractPort(p.TCPSocket.Port, pod, containerName)
-		if err != nil {
-			return api.Unknown, "", err
-		}
-		host := p.TCPSocket.Host
-		if host == "" {
-			host = pod.Status.PodIP
-		}
-		log.Debugf("TCP-Probe Host: %v, Port: %v, Timeout: %v", host, port, timeout)
-		return pb.Tcp.Probe(host, port, timeout)
-	}
-	log.Warningf("Failed to find probe builder for container: %v", containerName)
-	return api.Unknown, "", fmt.Errorf("missing probe handler for %s:%s", formatPod(pod), containerName)
+
+	return prober.executeProbe(probes, pod, api.DefaultProbeTimeout)
 }
 
-func toValues(form map[string]api_v1.ValueList) *url.Values {
-	if form == nil {
+func (pb *Prober) executeProbe(p *api_v1.Handler, pod *core.Pod, timeout time.Duration) error {
+	if p.Exec != nil {
+		log.Debugf("Exec-Probe Pod: %v, Container: %v, Command: %v", formatPod(pod), p.ContainerName, p.Exec.Command)
+		res, resp, err := pb.Exec.Probe(pb.Config, pod, p.ContainerName, p.Exec.Command)
+		if res != api.Success && res != api.Warning {
+			return handleProbeFailure("exec", res, resp, err)
+		}
+	}
+	if p.HTTPGet != nil {
+		res, resp, err := pb.executeHttpGet(p, pod, timeout)
+		if res != api.Success && res != api.Warning {
+			return handleProbeFailure("httpGet", res, resp, err)
+		}
+	}
+	if p.HTTPPost != nil {
+		res, resp, err := pb.executeHttpPost(p, pod, timeout)
+		if res != api.Success && res != api.Warning {
+			return handleProbeFailure("httpPost", res, resp, err)
+		}
+	}
+	if p.TCPSocket != nil {
+		res, resp, err := pb.executeTcpProbe(p, pod, timeout)
+		if res != api.Success && res != api.Warning {
+			return handleProbeFailure("tcp", res, resp, err)
+		}
+	}
+	return nil
+}
+
+func (pb *Prober) executeHttpGet(p *api_v1.Handler, pod *core.Pod, timeout time.Duration) (api.Result, string, error) {
+	scheme := strings.ToLower(string(p.HTTPGet.Scheme))
+	host := p.HTTPGet.Host
+	if host == "" {
+		host = pod.Status.PodIP
+	}
+	port, err := extractPort(p.HTTPGet.Port, pod, p.ContainerName)
+	if err != nil {
+		return api.Unknown, "", err
+	}
+	path := p.HTTPGet.Path
+	log.Debugf("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
+	targetURL := formatURL(scheme, host, port, path)
+	headers := buildHeader(p.HTTPGet.HTTPHeaders)
+	log.Debugf("HTTP-Probe Headers: %v", headers)
+	return pb.HttpGet.Probe(targetURL, headers, timeout)
+}
+
+func (pb *Prober) executeHttpPost(p *api_v1.Handler, pod *core.Pod, timeout time.Duration) (api.Result, string, error) {
+	scheme := strings.ToLower(string(p.HTTPPost.Scheme))
+	host := p.HTTPPost.Host
+	if host == "" {
+		host = pod.Status.PodIP
+	}
+	port, err := extractPort(p.HTTPPost.Port, pod, p.ContainerName)
+	if err != nil {
+		return api.Unknown, "", err
+	}
+	path := p.HTTPPost.Path
+	log.Debugf("HTTP-Probe Host: %v://%v, Port: %v, Path: %v", scheme, host, port, path)
+	targetURL := formatURL(scheme, host, port, path)
+	headers := buildHeader(p.HTTPPost.HTTPHeaders)
+	log.Debugf("HTTP-Probe Headers: %v", headers)
+	return pb.HttpPost.Probe(targetURL, headers, toValues(p.HTTPPost.Form), p.HTTPPost.Body, timeout)
+}
+
+func (pb *Prober) executeTcpProbe(p *api_v1.Handler, pod *core.Pod, timeout time.Duration) (api.Result, string, error) {
+	port, err := extractPort(p.TCPSocket.Port, pod, p.ContainerName)
+	if err != nil {
+		return api.Unknown, "", err
+	}
+	host := p.TCPSocket.Host
+	if host == "" {
+		host = pod.Status.PodIP
+	}
+	log.Debugf("TCP-Probe Host: %v, Port: %v, Timeout: %v", host, port, timeout)
+	return pb.Tcp.Probe(host, port, timeout)
+}
+
+func toValues(formEntry []api_v1.FormEntry) url.Values {
+	if len(formEntry) == 0 {
 		return nil
 	}
-	var out url.Values
-	for k, v := range form {
-		out[k] = v.Values
+	out := url.Values{}
+	for _, v := range formEntry {
+		out[v.Key] = v.Values
 	}
-	return &out
+	return out
 }
 
 // buildHeaderMap takes a list of HTTPHeader <name, value> string
@@ -175,6 +218,16 @@ func extractPort(param intstr.IntOrString, pod *core.Pod, containerName string) 
 		return port, nil
 	}
 	return port, fmt.Errorf("invalid port number: %v", port)
+}
+
+func handleProbeFailure(probeType string, result api.Result, resp string, probeErr error) error {
+	switch result {
+	case api.Unknown:
+		return fmt.Errorf("failed to execute %q probe. Error: %v", probeType, probeErr)
+	case api.Failure:
+		return fmt.Errorf("failed to execute %q probe. Error: %v. Response: %s", probeType, probeErr, resp)
+	}
+	return nil
 }
 
 // findPortByName is a helper function to look up a port in a container by name.

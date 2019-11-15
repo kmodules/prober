@@ -53,7 +53,7 @@ func NewPostWithTLSConfig(config *tls.Config, followNonLocalRedirects bool) Post
 
 // PostProber is an interface that defines the Probe function for doing HTTP probe.
 type PostProber interface {
-	Probe(url *url.URL, headers http.Header, form *url.Values, body string, timeout time.Duration) (api.Result, string, error)
+	Probe(url *url.URL, headers http.Header, form url.Values, body string, timeout time.Duration) (api.Result, string, error)
 }
 
 type httpPostProber struct {
@@ -62,7 +62,7 @@ type httpPostProber struct {
 }
 
 // Probe returns a ProbeRunner capable of running an HTTP check.
-func (pr httpPostProber) Probe(url *url.URL, headers http.Header, form *url.Values, body string, timeout time.Duration) (api.Result, string, error) {
+func (pr httpPostProber) Probe(url *url.URL, headers http.Header, form url.Values, body string, timeout time.Duration) (api.Result, string, error) {
 	client := &http.Client{
 		Timeout:       timeout,
 		Transport:     pr.transport,
@@ -75,7 +75,7 @@ func (pr httpPostProber) Probe(url *url.URL, headers http.Header, form *url.Valu
 // If the HTTP response code is successful (i.e. 400 > code >= 200), it returns Success.
 // If the HTTP response code is unsuccessful or HTTP communication fails, it returns Failure.
 // This is exported because some other packages may want to do direct HTTP probes.
-func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, form *url.Values, body string) (api.Result, string, error) {
+func DoHTTPPostProbe(addr *url.URL, headers http.Header, client HTTPInterface, form url.Values, body string) (api.Result, string, error) {
 	var req *http.Request
 	var err error
 

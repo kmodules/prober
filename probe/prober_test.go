@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"kmodules.xyz/prober/api"
 	prober_v1 "kmodules.xyz/prober/api/v1"
 
 	core "k8s.io/api/core/v1"
@@ -147,8 +146,6 @@ func TestRunProbe(t *testing.T) {
 		probe          *prober_v1.Handler
 		handler        func(w http.ResponseWriter, r *http.Request)
 		pod            *core.Pod
-		containerName  string
-		expectedResult api.Result
 		expectedErrMsg string
 	}{
 		//==================== HTTP Get Probe ======================
@@ -161,11 +158,10 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/success",
 					Port:   intstr.FromInt(8920),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Success,
 			expectedErrMsg: "",
 		},
 		{
@@ -177,12 +173,11 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/fail",
 					Port:   intstr.FromInt(8920),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusBadRequest),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Failure,
-			expectedErrMsg: "",
+			expectedErrMsg: `failed to execute "httpGet" probe. Error: <nil>. Response: HTTP probe failed with statuscode: 400`,
 		},
 		{
 			name: "HTTPGet: host and port from pod (success check)",
@@ -192,11 +187,10 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/success",
 					Port:   intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Success,
 			expectedErrMsg: "",
 		},
 		{
@@ -207,12 +201,11 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/fail",
 					Port:   intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusBadRequest),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Failure,
-			expectedErrMsg: "",
+			expectedErrMsg: `failed to execute "httpGet" probe. Error: <nil>. Response: HTTP probe failed with statuscode: 400`,
 		},
 		{
 			name: "HTTPGet: invalid pod",
@@ -223,12 +216,11 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/success",
 					Port:   intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            nil,
-			containerName:  "foo",
-			expectedResult: api.Unknown,
-			expectedErrMsg: "failed to extract port. invalid pod",
+			expectedErrMsg: `failed to execute "httpGet" probe. Error: failed to extract port. invalid pod`,
 		},
 		{
 			name: "HTTPGet: unknown container",
@@ -238,12 +230,11 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/fail",
 					Port:   intstr.FromString("bar-port"),
 				},
+				ContainerName: "bar",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "bar",
-			expectedResult: api.Unknown,
-			expectedErrMsg: "failed to extract port. container not found",
+			expectedErrMsg: `failed to execute "httpGet" probe. Error: failed to extract port. container not found`,
 		},
 		//========================== HTTP Post Probe======================
 		{
@@ -255,11 +246,10 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/success",
 					Port:   intstr.FromInt(8920),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Success,
 			expectedErrMsg: "",
 		},
 		{
@@ -271,12 +261,11 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/fail",
 					Port:   intstr.FromInt(8920),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusBadRequest),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Failure,
-			expectedErrMsg: "",
+			expectedErrMsg: `failed to execute "httpPost" probe. Error: <nil>. Response: HTTP probe failed with statuscode: 400`,
 		},
 		{
 			name: "HTTPPost: host and port from pod (success check)",
@@ -286,11 +275,10 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/success",
 					Port:   intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Success,
 			expectedErrMsg: "",
 		},
 		{
@@ -301,12 +289,11 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/fail",
 					Port:   intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusBadRequest),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Failure,
-			expectedErrMsg: "",
+			expectedErrMsg: `failed to execute "httpPost" probe. Error: <nil>. Response: HTTP probe failed with statuscode: 400`,
 		},
 		{
 			name: "HTTPPost: invalid pod",
@@ -317,12 +304,11 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/success",
 					Port:   intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            nil,
-			containerName:  "foo",
-			expectedResult: api.Unknown,
-			expectedErrMsg: "failed to extract port. invalid pod",
+			expectedErrMsg: `failed to execute "httpPost" probe. Error: failed to extract port. invalid pod`,
 		},
 		{
 			name: "HTTPPost: unknown container",
@@ -332,12 +318,11 @@ func TestRunProbe(t *testing.T) {
 					Path:   "/fail",
 					Port:   intstr.FromString("bar-port"),
 				},
+				ContainerName: "bar",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "bar",
-			expectedResult: api.Unknown,
-			expectedErrMsg: "failed to extract port. container not found",
+			expectedErrMsg: `failed to execute "httpPost" probe. Error: failed to extract port. container not found`,
 		},
 		//======================= TCP Probe ====================
 		{
@@ -347,11 +332,10 @@ func TestRunProbe(t *testing.T) {
 					Host: "127.0.0.1",
 					Port: intstr.FromInt(8920),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Success,
 			expectedErrMsg: "",
 		},
 		{
@@ -361,12 +345,11 @@ func TestRunProbe(t *testing.T) {
 					Host: "127.0.0.1",
 					Port: intstr.FromInt(8899),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusBadRequest),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Failure,
-			expectedErrMsg: "",
+			expectedErrMsg: `failed to execute "tcp" probe. Error: <nil>. Response: dial tcp 127.0.0.1:8899: connect: connection refused`,
 		},
 		{
 			name: "TCP: host and port from pod (success check)",
@@ -374,11 +357,10 @@ func TestRunProbe(t *testing.T) {
 				TCPSocket: &core.TCPSocketAction{
 					Port: intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "foo",
-			expectedResult: api.Success,
 			expectedErrMsg: "",
 		},
 		{
@@ -387,6 +369,7 @@ func TestRunProbe(t *testing.T) {
 				TCPSocket: &core.TCPSocketAction{
 					Port: intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler: genericHandler(http.StatusBadRequest),
 			pod: &core.Pod{
@@ -405,9 +388,7 @@ func TestRunProbe(t *testing.T) {
 				},
 				Status: pod.Status,
 			},
-			containerName:  "foo",
-			expectedResult: api.Failure,
-			expectedErrMsg: "",
+			expectedErrMsg: `failed to execute "tcp" probe. Error: <nil>. Response: dial tcp 127.0.0.1:8899: connect: connection refused`,
 		},
 		{
 			name: "TCP: invalid pod",
@@ -416,12 +397,11 @@ func TestRunProbe(t *testing.T) {
 					Host: "127.0.0.1",
 					Port: intstr.FromString("foo-port"),
 				},
+				ContainerName: "foo",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            nil,
-			containerName:  "foo",
-			expectedResult: api.Unknown,
-			expectedErrMsg: "failed to extract port. invalid pod",
+			expectedErrMsg: `failed to execute "tcp" probe. Error: failed to extract port. invalid pod`,
 		},
 		{
 			name: "TCP: unknown container",
@@ -429,12 +409,11 @@ func TestRunProbe(t *testing.T) {
 				TCPSocket: &core.TCPSocketAction{
 					Port: intstr.FromString("bar-port"),
 				},
+				ContainerName: "bar",
 			},
 			handler:        genericHandler(http.StatusOK),
 			pod:            pod,
-			containerName:  "bar",
-			expectedResult: api.Unknown,
-			expectedErrMsg: "failed to extract port. container not found",
+			expectedErrMsg: `failed to execute "tcp" probe. Error: failed to extract port. container not found`,
 		},
 	}
 	prober := NewProber(nil)
@@ -452,14 +431,11 @@ func TestRunProbe(t *testing.T) {
 			server.Start()
 			defer server.Close()
 
-			result, response, err := prober.RunProbe(test.probe, test.pod, test.containerName, time.Second*30)
+			err = prober.executeProbe(test.probe, test.pod, time.Second*30)
 			if err != nil {
 				if err.Error() != test.expectedErrMsg {
 					t.Errorf("Expected error message: %v, Found: %v", test.expectedErrMsg, err.Error())
 				}
-			}
-			if result != test.expectedResult {
-				t.Errorf("Expect result: %v, Found: %v. Respone: %v", test.expectedResult, result, response)
 			}
 		})
 	}
