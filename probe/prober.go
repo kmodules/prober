@@ -159,15 +159,15 @@ func (pb *Prober) executeTcpProbe(p *api_v1.Handler, pod *core.Pod, timeout time
 	return pb.Tcp.Probe(host, port, timeout)
 }
 
-func toValues(formEntry []api_v1.FormEntry) *url.Values {
+func toValues(formEntry []api_v1.FormEntry) url.Values {
 	if len(formEntry) == 0 {
 		return nil
 	}
-	out := make(url.Values)
+	out := url.Values{}
 	for _, v := range formEntry {
 		out[v.Key] = v.Values
 	}
-	return &out
+	return out
 }
 
 // buildHeaderMap takes a list of HTTPHeader <name, value> string

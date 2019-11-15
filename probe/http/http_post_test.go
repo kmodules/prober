@@ -155,7 +155,7 @@ func TestHTTPPostProbeChecker(t *testing.T) {
 		health     api.Result
 		accBody    string
 		notBody    string
-		form       *url.Values
+		form       url.Values
 		body       string
 	}{
 		// The probe will be filled in below.  This is primarily testing that an HTTP POST happens.
@@ -163,7 +163,7 @@ func TestHTTPPostProbeChecker(t *testing.T) {
 			name:    "Request with form encoded body",
 			handler: handleReqWithForm(http.StatusOK),
 			health:  api.Success,
-			form:    &url.Values{"name": {"form-test"}, "age": {"who-cares"}},
+			form:    url.Values{"name": {"form-test"}, "age": {"who-cares"}},
 			accBody: "age=[who-cares]&name=[form-test]",
 		},
 		{
