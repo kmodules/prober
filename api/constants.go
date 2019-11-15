@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 package api // Result is a string used to handle the results for probing
+import "time"
 
 type Result string
 
@@ -27,4 +28,8 @@ const (
 	Failure Result = "failure"
 	// Unknown Result
 	Unknown Result = "unknown"
+)
+
+const (
+	DefaultProbeTimeout = time.Minute * 5
 )

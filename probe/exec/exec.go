@@ -51,8 +51,13 @@ func (pr execProber) Probe(config *rest.Config, pod *core.Pod, containerName str
 	stdOut := LimitWriter(&outBuffer, maxReadLength)
 	stdErr := LimitWriter(&errBuffer, maxReadLength)
 
+	container := containerName
+	if container == "" {
+		container = pod.Spec.Containers[0].Name
+	}
+
 	data, err := exec_util.ExecIntoPod(config, pod, func(opt *exec_util.Options) {
-		opt.Container = containerName
+		opt.Container = container
 		opt.Command = commands
 		opt.StreamOptions.Stdout = stdOut
 		opt.StreamOptions.Stderr = stdErr
