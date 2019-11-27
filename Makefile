@@ -253,7 +253,7 @@ $(BUILD_DIRS):
 	@mkdir -p $@
 
 .PHONY: dev
-dev: gen fmt push
+dev: gen fmt
 
 .PHONY: verify
 verify: verify-modules verify-gen

@@ -64,7 +64,7 @@ func (pr execProber) Probe(config *rest.Config, pod *core.Pod, containerName str
 	})
 
 	if err != nil {
-		return api.Failure, data, nil
+		return api.Failure, data, err
 	}
 	return api.Success, data, nil
 }
