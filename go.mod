@@ -3,7 +3,7 @@ module kmodules.xyz/prober
 go 1.12
 
 require (
-	github.com/appscode/go v0.0.0-20191119085241-0887d8ec2ecc
+	github.com/appscode/go v0.0.0-20200323182826-54e98e09185a
 	github.com/gabriel-vasile/mimetype v0.3.22
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-openapi/swag v0.19.4 // indirect
@@ -17,7 +17,7 @@ require (
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
 	k8s.io/utils v0.0.0-20190801114015-581e00157fb1
-	kmodules.xyz/client-go v0.0.0-20191211192817-f1dcd02124ba
+	kmodules.xyz/client-go v0.0.0-20200518125232-435dcc370844
 )
 
 replace (

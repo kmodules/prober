@@ -59,7 +59,7 @@ ARCH := $(if $(GOARCH),$(GOARCH),$(shell go env GOARCH))
 BASEIMAGE_PROD   ?= gcr.io/distroless/static
 BASEIMAGE_DBG    ?= debian:stretch
 
-GO_VERSION       ?= 1.13.5
+GO_VERSION       ?= 1.14.3
 BUILD_IMAGE      ?= appscode/golang-dev:$(GO_VERSION)
 
 OUTBIN = bin/$(OS)_$(ARCH)/$(BIN)
