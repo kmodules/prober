@@ -30,6 +30,7 @@ import (
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
 		"kmodules.xyz/prober/api/v1.FormEntry":      schema_kmodulesxyz_prober_api_v1_FormEntry(ref),
+		"kmodules.xyz/prober/api/v1.HTTPHeader":     schema_kmodulesxyz_prober_api_v1_HTTPHeader(ref),
 		"kmodules.xyz/prober/api/v1.HTTPPostAction": schema_kmodulesxyz_prober_api_v1_HTTPPostAction(ref),
 		"kmodules.xyz/prober/api/v1.Handler":        schema_kmodulesxyz_prober_api_v1_Handler(ref),
 	}
@@ -63,6 +64,42 @@ func schema_kmodulesxyz_prober_api_v1_FormEntry(ref common.ReferenceCallback) co
 				},
 			},
 		},
+	}
+}
+
+func schema_kmodulesxyz_prober_api_v1_HTTPHeader(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "HTTPHeader describes a custom header to be used in HTTP probes",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The header field name",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"value": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The header field value",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"valueFrom": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Source for the header field's value. Cannot be used if value is not empty.",
+							Ref:         ref("k8s.io/api/core/v1.EnvVarSource"),
+						},
+					},
+				},
+				Required: []string{"name"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.EnvVarSource"},
 	}
 }
 
@@ -107,7 +144,7 @@ func schema_kmodulesxyz_prober_api_v1_HTTPPostAction(ref common.ReferenceCallbac
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.HTTPHeader"),
+										Ref: ref("kmodules.xyz/prober/api/v1.HTTPHeader"),
 									},
 								},
 							},
@@ -138,7 +175,7 @@ func schema_kmodulesxyz_prober_api_v1_HTTPPostAction(ref common.ReferenceCallbac
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.HTTPHeader", "k8s.io/apimachinery/pkg/util/intstr.IntOrString", "kmodules.xyz/prober/api/v1.FormEntry"},
+			"k8s.io/apimachinery/pkg/util/intstr.IntOrString", "kmodules.xyz/prober/api/v1.FormEntry", "kmodules.xyz/prober/api/v1.HTTPHeader"},
 	}
 }
 

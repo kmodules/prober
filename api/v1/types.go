@@ -64,7 +64,7 @@ type HTTPPostAction struct {
 	Scheme core.URIScheme `json:"scheme,omitempty" protobuf:"bytes,4,opt,name=scheme,casttype=k8s.io/api/core/v1.URIScheme"`
 	// Custom headers to set in the request. HTTP allows repeated headers.
 	// +optional
-	HTTPHeaders []core.HTTPHeader `json:"httpHeaders,omitempty" protobuf:"bytes,5,rep,name=httpHeaders"`
+	HTTPHeaders []HTTPHeader `json:"httpHeaders,omitempty" protobuf:"bytes,5,rep,name=httpHeaders"`
 	// Body to set in the request.
 	// +optional
 	Body string `json:"body,omitempty" protobuf:"bytes,6,opt,name=body"`
@@ -76,4 +76,15 @@ type HTTPPostAction struct {
 type FormEntry struct {
 	Key    string   `json:"key,omitempty" protobuf:"bytes,1,rep,name=key"`
 	Values []string `json:"values,omitempty" protobuf:"bytes,2,rep,name=values"`
+}
+
+// HTTPHeader describes a custom header to be used in HTTP probes
+type HTTPHeader struct {
+	// The header field name
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
+	// The header field value
+	Value string `json:"value,omitempty" protobuf:"bytes,2,opt,name=value"`
+	// Source for the header field's value. Cannot be used if value is not empty.
+	// +optional
+	ValueFrom *core.EnvVarSource `json:"valueFrom,omitempty" protobuf:"bytes,3,opt,name=valueFrom"`
 }

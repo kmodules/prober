@@ -33,6 +33,19 @@ message FormEntry {
   repeated string values = 2;
 }
 
+// HTTPHeader describes a custom header to be used in HTTP probes
+message HTTPHeader {
+  // The header field name
+  optional string name = 1;
+
+  // The header field value
+  optional string value = 2;
+
+  // Source for the header field's value. Cannot be used if value is not empty.
+  // +optional
+  optional k8s.io.api.core.v1.EnvVarSource valueFrom = 3;
+}
+
 // HTTPPostAction describes an action based on HTTP Post requests.
 message HTTPPostAction {
   // Path to access on the HTTP server.
@@ -56,7 +69,7 @@ message HTTPPostAction {
 
   // Custom headers to set in the request. HTTP allows repeated headers.
   // +optional
-  repeated k8s.io.api.core.v1.HTTPHeader httpHeaders = 5;
+  repeated HTTPHeader httpHeaders = 5;
 
   // Body to set in the request.
   // +optional

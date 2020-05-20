@@ -2,7 +2,7 @@
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/appscode/go v0.0.0-20191119085241-0887d8ec2ecc
+# github.com/appscode/go v0.0.0-20200323182826-54e98e09185a
 github.com/appscode/go/context
 github.com/appscode/go/log
 # github.com/davecgh/go-spew v1.1.1
@@ -244,7 +244,7 @@ k8s.io/kube-openapi/pkg/common
 # k8s.io/utils v0.0.0-20190801114015-581e00157fb1 => k8s.io/utils v0.0.0-20190801114015-581e00157fb1
 k8s.io/utils/integer
 k8s.io/utils/io
-# kmodules.xyz/client-go v0.0.0-20191211192817-f1dcd02124ba
+# kmodules.xyz/client-go v0.0.0-20200518125232-435dcc370844
 kmodules.xyz/client-go/tools/exec
 # sigs.k8s.io/yaml v1.1.0 => sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml
