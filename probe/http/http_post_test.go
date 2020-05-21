@@ -34,6 +34,7 @@ import (
 
 	api "kmodules.xyz/prober/api"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -77,7 +78,7 @@ func TestHTTPPostProbeProxy(t *testing.T) {
 }
 
 func TestHTTPPostProbeChecker(t *testing.T) {
-	handleReqWithForm := func(expectedStatusCode int) func(w http.ResponseWriter, r *http.Request) {
+	handleReqWithForm := func(expectedStatusCode int) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			err := r.ParseForm()
 			utilruntime.Must(err)
@@ -97,10 +98,10 @@ func TestHTTPPostProbeChecker(t *testing.T) {
 			utilruntime.Must(err)
 		}
 	}
-	handleReqWithBody := func(expectedStatusCode int, expectedContentType string) func(w http.ResponseWriter, r *http.Request) {
+	handleReqWithBody := func(expectedStatusCode int, expectedContentType string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			contentType := r.Header.Get(ContentType)
-			if contentType != expectedContentType {
+			if !mimetype.EqualsAny(contentType, expectedContentType) {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -136,7 +137,7 @@ func TestHTTPPostProbeChecker(t *testing.T) {
 		}
 	}
 
-	redirectHandler := func(s int, bad bool) func(w http.ResponseWriter, r *http.Request) {
+	redirectHandler := func(s int, bad bool) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/" {
 				http.Redirect(w, r, "/new", s)
