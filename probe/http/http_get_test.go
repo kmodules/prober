@@ -236,34 +236,34 @@ func TestHTTPProbeGetChecker(t *testing.T) {
 			health:  api.Failure,
 		},
 	}
-	for i := range testCases {
-		tt := testCases[i]
-		t.Run(fmt.Sprintf("case-%2d", i), func(t *testing.T) {
+	for idx := range testCases {
+		tt := testCases[idx]
+		t.Run(fmt.Sprintf("case-%2d", idx), func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				tt.handler(w, r)
 			}))
 			defer server.Close()
 			u, err := url.Parse(server.URL)
 			if err != nil {
-				t.Errorf("case %d: unexpected error: %v", i, err)
+				t.Errorf("case %d: unexpected error: %v", idx, err)
 			}
 			_, port, err := net.SplitHostPort(u.Host)
 			if err != nil {
-				t.Errorf("case %d: unexpected error: %v", i, err)
+				t.Errorf("case %d: unexpected error: %v", idx, err)
 			}
 			_, err = strconv.Atoi(port)
 			if err != nil {
-				t.Errorf("case %d: unexpected error: %v", i, err)
+				t.Errorf("case %d: unexpected error: %v", idx, err)
 			}
 			health, output, err := prober.Probe(u, tt.reqHeaders, 1*time.Second)
 			if tt.health == api.Unknown && err == nil {
-				t.Errorf("case %d: expected error", i)
+				t.Errorf("case %d: expected error", idx)
 			}
 			if tt.health != api.Unknown && err != nil {
-				t.Errorf("case %d: unexpected error: %v", i, err)
+				t.Errorf("case %d: unexpected error: %v", idx, err)
 			}
 			if health != tt.health {
-				t.Errorf("case %d: expected %v, got %v", i, tt.health, health)
+				t.Errorf("case %d: expected %v, got %v", idx, tt.health, health)
 			}
 			if health != api.Failure && tt.health != api.Failure {
 				if !strings.Contains(output, tt.accBody) {
@@ -309,22 +309,23 @@ func TestHTTPProbeChecker_NonLocalRedirects(t *testing.T) {
 		"bogus nonlocal":  {"http://0.0.0.0/fail", api.Warning, api.Failure},
 		"redirect loop":   {"/loop", api.Failure, api.Failure},
 	}
-	for desc, test := range testCases {
-		t.Run(desc+"-local", func(t *testing.T) {
+	for idx := range testCases {
+		tt := testCases[idx]
+		t.Run(idx+"-local", func(t *testing.T) {
 			followNonLocalRedirects := false
 			prober := NewHttpGet(followNonLocalRedirects)
-			target, err := url.Parse(server.URL + "/redirect?loc=" + url.QueryEscape(test.redirect))
+			target, err := url.Parse(server.URL + "/redirect?loc=" + url.QueryEscape(tt.redirect))
 			require.NoError(t, err)
 			result, _, _ := prober.Probe(target, nil, wait.ForeverTestTimeout)
-			assert.Equal(t, test.expectLocalResult, result)
+			assert.Equal(t, tt.expectLocalResult, result)
 		})
-		t.Run(desc+"-nonlocal", func(t *testing.T) {
+		t.Run(idx+"-nonlocal", func(t *testing.T) {
 			followNonLocalRedirects := true
 			prober := NewHttpGet(followNonLocalRedirects)
-			target, err := url.Parse(server.URL + "/redirect?loc=" + url.QueryEscape(test.redirect))
+			target, err := url.Parse(server.URL + "/redirect?loc=" + url.QueryEscape(tt.redirect))
 			require.NoError(t, err)
 			result, _, _ := prober.Probe(target, nil, wait.ForeverTestTimeout)
-			assert.Equal(t, test.expectNonLocalResult, result)
+			assert.Equal(t, tt.expectNonLocalResult, result)
 		})
 	}
 }
@@ -357,24 +358,25 @@ func TestHTTPProbeChecker_HostHeaderPreservedAfterRedirect(t *testing.T) {
 		"success": {successHostHeader, api.Success},
 		"fail":    {failHostHeader, api.Failure},
 	}
-	for desc, test := range testCases {
+	for idx := range testCases {
+		tt := testCases[idx]
 		headers := http.Header{}
-		headers.Add("Host", test.hostHeader)
-		t.Run(desc+"local", func(t *testing.T) {
+		headers.Add("Host", tt.hostHeader)
+		t.Run(idx+"local", func(t *testing.T) {
 			followNonLocalRedirects := false
 			prober := NewHttpGet(followNonLocalRedirects)
 			target, err := url.Parse(server.URL + "/redirect")
 			require.NoError(t, err)
 			result, _, _ := prober.Probe(target, headers, wait.ForeverTestTimeout)
-			assert.Equal(t, test.expectedResult, result)
+			assert.Equal(t, tt.expectedResult, result)
 		})
-		t.Run(desc+"nonlocal", func(t *testing.T) {
+		t.Run(idx+"nonlocal", func(t *testing.T) {
 			followNonLocalRedirects := true
 			prober := NewHttpGet(followNonLocalRedirects)
 			target, err := url.Parse(server.URL + "/redirect")
 			require.NoError(t, err)
 			result, _, _ := prober.Probe(target, headers, wait.ForeverTestTimeout)
-			assert.Equal(t, test.expectedResult, result)
+			assert.Equal(t, tt.expectedResult, result)
 		})
 	}
 }
