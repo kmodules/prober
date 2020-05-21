@@ -34,6 +34,7 @@ import (
 
 	api "kmodules.xyz/prober/api"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -77,7 +78,7 @@ func TestHTTPPostProbeProxy(t *testing.T) {
 }
 
 func TestHTTPPostProbeChecker(t *testing.T) {
-	handleReqWithForm := func(expectedStatusCode int) func(w http.ResponseWriter, r *http.Request) {
+	handleReqWithForm := func(expectedStatusCode int) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			err := r.ParseForm()
 			utilruntime.Must(err)
@@ -97,10 +98,10 @@ func TestHTTPPostProbeChecker(t *testing.T) {
 			utilruntime.Must(err)
 		}
 	}
-	handleReqWithBody := func(expectedStatusCode int, expectedContentType string) func(w http.ResponseWriter, r *http.Request) {
+	handleReqWithBody := func(expectedStatusCode int, expectedContentType string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			contentType := r.Header.Get(ContentType)
-			if contentType != expectedContentType {
+			if !mimetype.EqualsAny(contentType, expectedContentType) {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -136,7 +137,7 @@ func TestHTTPPostProbeChecker(t *testing.T) {
 		}
 	}
 
-	redirectHandler := func(s int, bad bool) func(w http.ResponseWriter, r *http.Request) {
+	redirectHandler := func(s int, bad bool) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/" {
 				http.Redirect(w, r, "/new", s)
@@ -219,40 +220,41 @@ func TestHTTPPostProbeChecker(t *testing.T) {
 			health:  api.Failure,
 		},
 	}
-	for i, test := range testCases {
-		t.Run(fmt.Sprintf("case-%2d: %s", i, test.name), func(t *testing.T) {
+	for idx := range testCases {
+		tt := testCases[idx]
+		t.Run(fmt.Sprintf("case-%2d: %s", idx, tt.name), func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				test.handler(w, r)
+				tt.handler(w, r)
 			}))
 			defer server.Close()
 			u, err := url.Parse(server.URL)
 			if err != nil {
-				t.Errorf("case %d: unexpected error: %v", i, err)
+				t.Errorf("case %d: unexpected error: %v", idx, err)
 			}
 			_, port, err := net.SplitHostPort(u.Host)
 			if err != nil {
-				t.Errorf("case %d: unexpected error: %v", i, err)
+				t.Errorf("case %d: unexpected error: %v", idx, err)
 			}
 			_, err = strconv.Atoi(port)
 			if err != nil {
-				t.Errorf("case %d: unexpected error: %v", i, err)
+				t.Errorf("case %d: unexpected error: %v", idx, err)
 			}
-			health, output, err := prober.Probe(u, test.reqHeaders, test.form, test.body, 1*time.Second)
-			if test.health == api.Unknown && err == nil {
-				t.Errorf("case %d: expected error", i)
+			health, output, err := prober.Probe(u, tt.reqHeaders, tt.form, tt.body, 1*time.Second)
+			if tt.health == api.Unknown && err == nil {
+				t.Errorf("case %d: expected error", idx)
 			}
-			if test.health != api.Unknown && err != nil {
-				t.Errorf("case %d: unexpected error: %v", i, err)
+			if tt.health != api.Unknown && err != nil {
+				t.Errorf("case %d: unexpected error: %v", idx, err)
 			}
-			if health != test.health {
-				t.Errorf("case %d: expected %v, got %v. output: %v", i, test.health, health, output)
+			if health != tt.health {
+				t.Errorf("case %d: expected %v, got %v. output: %v", idx, tt.health, health, output)
 			}
-			if health != api.Failure && test.health != api.Failure {
-				if !strings.Contains(output, test.accBody) {
-					t.Errorf("Expected response body to contain %v, got %v", test.accBody, output)
+			if health != api.Failure && tt.health != api.Failure {
+				if !strings.Contains(output, tt.accBody) {
+					t.Errorf("Expected response body to contain %v, got %v", tt.accBody, output)
 				}
-				if test.notBody != "" && strings.Contains(output, test.notBody) {
-					t.Errorf("Expected response not to contain %v, got %v", test.notBody, output)
+				if tt.notBody != "" && strings.Contains(output, tt.notBody) {
+					t.Errorf("Expected response not to contain %v, got %v", tt.notBody, output)
 				}
 			}
 		})
@@ -291,22 +293,23 @@ func TestHTTPPostProbeChecker_NonLocalRedirects(t *testing.T) {
 		"bogus nonlocal":  {"http://0.0.0.0/fail", api.Warning, api.Failure},
 		"redirect loop":   {"/loop", api.Failure, api.Failure},
 	}
-	for desc, test := range testCases {
-		t.Run(desc+"-local", func(t *testing.T) {
+	for idx := range testCases {
+		tt := testCases[idx]
+		t.Run(idx+"-local", func(t *testing.T) {
 			followNonLocalRedirects := false
 			prober := NewHttpPost(followNonLocalRedirects)
-			target, err := url.Parse(server.URL + "/redirect?loc=" + url.QueryEscape(test.redirect))
+			target, err := url.Parse(server.URL + "/redirect?loc=" + url.QueryEscape(tt.redirect))
 			require.NoError(t, err)
 			result, _, _ := prober.Probe(target, nil, nil, "", wait.ForeverTestTimeout)
-			assert.Equal(t, test.expectLocalResult, result)
+			assert.Equal(t, tt.expectLocalResult, result)
 		})
-		t.Run(desc+"-nonlocal", func(t *testing.T) {
+		t.Run(idx+"-nonlocal", func(t *testing.T) {
 			followNonLocalRedirects := true
 			prober := NewHttpPost(followNonLocalRedirects)
-			target, err := url.Parse(server.URL + "/redirect?loc=" + url.QueryEscape(test.redirect))
+			target, err := url.Parse(server.URL + "/redirect?loc=" + url.QueryEscape(tt.redirect))
 			require.NoError(t, err)
 			result, _, _ := prober.Probe(target, nil, nil, "", wait.ForeverTestTimeout)
-			assert.Equal(t, test.expectNonLocalResult, result)
+			assert.Equal(t, tt.expectNonLocalResult, result)
 		})
 	}
 }
@@ -339,24 +342,25 @@ func TestHTTPPostProbeChecker_HostHeaderPreservedAfterRedirect(t *testing.T) {
 		"success": {successHostHeader, api.Success},
 		"fail":    {failHostHeader, api.Failure},
 	}
-	for desc, test := range testCases {
+	for idx := range testCases {
+		tt := testCases[idx]
 		headers := http.Header{}
-		headers.Add("Host", test.hostHeader)
-		t.Run(desc+"local", func(t *testing.T) {
+		headers.Add("Host", tt.hostHeader)
+		t.Run(idx+"local", func(t *testing.T) {
 			followNonLocalRedirects := false
 			prober := NewHttpPost(followNonLocalRedirects)
 			target, err := url.Parse(server.URL + "/redirect")
 			require.NoError(t, err)
 			result, _, _ := prober.Probe(target, headers, nil, "", wait.ForeverTestTimeout)
-			assert.Equal(t, test.expectedResult, result)
+			assert.Equal(t, tt.expectedResult, result)
 		})
-		t.Run(desc+"nonlocal", func(t *testing.T) {
+		t.Run(idx+"nonlocal", func(t *testing.T) {
 			followNonLocalRedirects := true
 			prober := NewHttpPost(followNonLocalRedirects)
 			target, err := url.Parse(server.URL + "/redirect")
 			require.NoError(t, err)
 			result, _, _ := prober.Probe(target, headers, nil, "", wait.ForeverTestTimeout)
-			assert.Equal(t, test.expectedResult, result)
+			assert.Equal(t, tt.expectedResult, result)
 		})
 	}
 }
