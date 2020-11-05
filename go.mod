@@ -3,17 +3,17 @@ module kmodules.xyz/prober
 go 1.12
 
 require (
-	github.com/appscode/go v0.0.0-20200323182826-54e98e09185a
 	github.com/gabriel-vasile/mimetype v1.1.1
 	github.com/go-openapi/spec v0.19.3
 	github.com/gogo/protobuf v1.3.1
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
+	gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
 	k8s.io/api v0.18.9
 	k8s.io/apimachinery v0.18.9
 	k8s.io/client-go v0.18.9
 	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
 	k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89
-	kmodules.xyz/client-go v0.0.0-20200922200830-63d86b6e5b63
+	kmodules.xyz/client-go v0.0.0-20201105071625-0b277310b9b8
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
