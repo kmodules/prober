@@ -8,12 +8,13 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/stretchr/testify v1.6.1
 	gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
+	google.golang.org/appengine v1.6.5 // indirect
 	k8s.io/api v0.21.0
 	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v0.21.0
 	k8s.io/kube-openapi v0.0.0-20210305001622-591a79e4bda7
 	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
-	kmodules.xyz/client-go v0.0.0-20210425191502-3a7296dae084
+	kmodules.xyz/client-go v0.0.0-20210429233600-944c5ec810d6
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
@@ -80,6 +81,8 @@ replace github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
 
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.5
 
+replace github.com/jetstack/cert-manager => github.com/kmodules/cert-manager v1.3.1-0.20210429172957-c5436c14ce0e
+
 replace github.com/prometheus-operator/prometheus-operator => github.com/prometheus-operator/prometheus-operator v0.47.0
 
 replace github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring => github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
@@ -93,6 +96,8 @@ replace google.golang.org/api => google.golang.org/api v0.20.0
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.27.1
+
+replace helm.sh/helm/v3 => github.com/kubepack/helm/v3 v3.1.0-rc.1.0.20210427034123-21364f60dbb1
 
 replace k8s.io/api => k8s.io/api v0.21.0
 
@@ -111,3 +116,7 @@ replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20201113171705-d219536
 replace k8s.io/kubernetes => github.com/kmodules/kubernetes v1.22.0-alpha.0.0.20210427080452-22d2e66bae50
 
 replace k8s.io/utils => k8s.io/utils v0.0.0-20201110183641-67b214c5f920
+
+replace kmodules.xyz/resource-metadata => kmodules.xyz/resource-metadata v0.5.0
+
+replace sigs.k8s.io/application => github.com/kmodules/application v0.8.4-0.20210427030912-90eeee3bc4ad
