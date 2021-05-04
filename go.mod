@@ -7,13 +7,13 @@ require (
 	github.com/go-openapi/spec v0.19.5
 	github.com/gogo/protobuf v1.3.2
 	github.com/stretchr/testify v1.6.1
-	gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
 	k8s.io/api v0.21.0
 	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v0.21.0
+	k8s.io/klog/v2 v2.8.0
 	k8s.io/kube-openapi v0.0.0-20210305001622-591a79e4bda7
-	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009
-	kmodules.xyz/client-go v0.0.0-20210504004915-de8d9776f2a1
+	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
+	kmodules.xyz/client-go v0.0.0-20210504024435-1eb80721e9b8
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
