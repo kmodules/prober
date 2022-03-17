@@ -6,6 +6,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.2.0
 	github.com/go-openapi/spec v0.19.5
 	github.com/gogo/protobuf v1.3.2
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/stretchr/testify v1.7.0
 	k8s.io/api v0.21.1
 	k8s.io/apimachinery v0.21.1
