@@ -21,7 +21,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -126,7 +126,7 @@ func TestHTTPPostProbeChecker(t *testing.T) {
 				resp, err = json.Marshal(demoData)
 				utilruntime.Must(err)
 			default:
-				resp, err = ioutil.ReadAll(r.Body)
+				resp, err = io.ReadAll(r.Body)
 				utilruntime.Must(err)
 				defer r.Body.Close()
 			}
