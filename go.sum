@@ -480,8 +480,8 @@ k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1 h1:MQ8BAZPZlWk3S9K4a9NCkI
 k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1/go.mod h1:C/N6wCaBHeBHkHUesQOQy2/MZqGgMAFPqGsGQLdbZBU=
 k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed h1:jAne/RjBTyawwAy0utX5eqigAwz/lQhTmy+Hr/Cpue4=
 k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
-kmodules.xyz/client-go v0.25.0 h1:ItlaPAwQEzmle33ieIvT+zSIlZ0sZpwxgtCBD8OJnuE=
-kmodules.xyz/client-go v0.25.0/go.mod h1:PQAVWlXoHmk/OXqIuUz3xEW5H04uidiLwVyGX0yYnBQ=
+kmodules.xyz/client-go v0.25.10 h1:jp94jSBI43C91Uy6gJx3qatzpm0GuaDdOLconw2IiCo=
+kmodules.xyz/client-go v0.25.10/go.mod h1:6VSRxDP2UqoWUcF0aSpWu3m/56bEUzuuvZUrAxSFBr8=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
