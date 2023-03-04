@@ -403,7 +403,7 @@ k8s.io/utils/internal/third_party/forked/golang/net
 k8s.io/utils/io
 k8s.io/utils/net
 k8s.io/utils/strings/slices
-# kmodules.xyz/client-go v0.25.0
+# kmodules.xyz/client-go v0.25.10
 ## explicit; go 1.18
 kmodules.xyz/client-go/tools/exec
 # sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2
