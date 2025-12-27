@@ -242,7 +242,7 @@ func TestHTTPProbeGetChecker(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				tt.handler(w, r)
 			}))
-			defer server.Close()
+			defer server.Close() // nolint:errcheck
 			u, err := url.Parse(server.URL)
 			if err != nil {
 				t.Errorf("case %d: unexpected error: %v", idx, err)
@@ -292,10 +292,10 @@ func TestHTTPProbeChecker_NonLocalRedirects(t *testing.T) {
 		}
 	})
 	server := httptest.NewServer(handler)
-	defer server.Close()
+	defer server.Close() // nolint:errcheck
 
 	newportServer := httptest.NewServer(handler)
-	defer newportServer.Close()
+	defer newportServer.Close() // nolint:errcheck
 
 	testCases := map[string]struct {
 		redirect             string
@@ -349,7 +349,7 @@ func TestHTTPProbeChecker_HostHeaderPreservedAfterRedirect(t *testing.T) {
 		}
 	})
 	server := httptest.NewServer(handler)
-	defer server.Close()
+	defer server.Close() // nolint:errcheck
 
 	testCases := map[string]struct {
 		hostHeader     string
@@ -401,7 +401,7 @@ func TestHTTPProbeChecker_PayloadTruncated(t *testing.T) {
 		}
 	})
 	server := httptest.NewServer(handler)
-	defer server.Close()
+	defer server.Close() // nolint:errcheck
 
 	headers := http.Header{}
 	headers.Add("Host", successHostHeader)
@@ -435,7 +435,7 @@ func TestHTTPProbeChecker_PayloadNormal(t *testing.T) {
 		}
 	})
 	server := httptest.NewServer(handler)
-	defer server.Close()
+	defer server.Close() // nolint:errcheck
 
 	headers := http.Header{}
 	headers.Add("Host", successHostHeader)

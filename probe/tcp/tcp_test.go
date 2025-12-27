@@ -32,7 +32,7 @@ func TestTcpHealthChecker(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	defer server.Close()
+	defer server.Close() // nolint:errcheck
 	tHost, tPortStr, err := net.SplitHostPort(server.Listener.Addr().String())
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)

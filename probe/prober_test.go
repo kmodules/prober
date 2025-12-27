@@ -420,10 +420,10 @@ func TestRunProbe(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to create custom listener")
 			}
-			server.Listener.Close()
+			server.Listener.Close() // nolint:errcheck
 			server.Listener = customListener
 			server.Start()
-			defer server.Close()
+			defer server.Close() // nolint:errcheck
 
 			err = prober.executeProbe(test.probe, test.pod, time.Second*30)
 			if err != nil {
