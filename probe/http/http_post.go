@@ -49,7 +49,8 @@ func NewPostWithTLSConfig(config *tls.Config, followNonLocalRedirects bool) Post
 			TLSClientConfig:   config,
 			DisableKeepAlives: true,
 			Proxy:             http.ProxyURL(nil),
-		})
+		},
+	)
 	return httpPostProber{transport, followNonLocalRedirects}
 }
 
