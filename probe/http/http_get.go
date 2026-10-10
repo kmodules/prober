@@ -51,7 +51,8 @@ func NewGetWithTLSConfig(config *tls.Config, followNonLocalRedirects bool) GetPr
 			TLSClientConfig:   config,
 			DisableKeepAlives: true,
 			Proxy:             http.ProxyURL(nil),
-		})
+		},
+	)
 	return httpGetProber{transport, followNonLocalRedirects}
 }
 
